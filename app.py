@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 
 # 1. 기본 설정
 st.set_page_config(page_title="생기부 종단 궤적 진단", layout="wide")
@@ -66,7 +65,36 @@ if st.button("AI 사정관 종단 분석 시작", type="primary"):
     st.subheader("🎯 관심사 심화 스토리라인")
     st.info(mock_analysis["story_trajectory"])
     
-    # 텍스트 화살표 흐름도 UI
+    # 텍스트 화살표 흐름도 UI (HTML 태그 제거 및 마크다운 적용)
     col_a, col_b, col_c, col_d, col_e = st.columns([2, 1, 2, 1, 2])
     col_a.success("🌱 1학년\n\n사회 변화 전반에 대한 호기심")
-    col_b.markdown("
+    col_b.markdown("## ➡️")
+    col_c.warning("🌿 2학년\n\n특정 시대의 사회상과 노동 문제로 구체화")
+    col_d.markdown("## ➡️")
+    col_e.error(f"🌳 3학년 (목표)\n\n{career_goal if career_goal else '희망 진로'} 진학을 위한 심층적 비판 역량 증명")
+    
+    st.divider()
+
+    # 역량 성장 꺾은선 그래프
+    col1, col2 = st.columns([3, 2])
+    
+    with col1:
+        st.subheader("📈 3대 역량 학년별 성장 궤적")
+        # Plotly를 활용한 꺾은선 그래프
+        df_growth = pd.DataFrame(mock_analysis["growth_scores"]).T.reset_index()
+        df_growth.rename(columns={"index": "학년"}, inplace=True)
+        
+        # 데이터 구조 변환 (Plotly line chart에 맞게)
+        df_melted = df_growth.melt(id_vars="학년", var_name="역량", value_name="점수")
+        
+        fig = px.line(df_melted, x="학년", y="점수", color="역량", markers=True, 
+                      range_y=[0, 100], text="점수",
+                      title="학년 진급에 따른 역량 우상향 추이")
+        fig.update_traces(textposition="bottom right", marker=dict(size=10))
+        st.plotly_chart(fig, use_container_width=True)
+        
+    with col2:
+        st.subheader("💡 입학사정관의 Action Plan")
+        st.write(mock_analysis["action_plan"])
+        st.markdown("**🔍 분석 참고 사항**")
+        st.caption("입력되지 않은 공란은 평가에서 제외되었으며, 제공된 텍스트의 맥락(Context)을 중심으로 5개 대학 평가 기준을 적용했습니다.")
