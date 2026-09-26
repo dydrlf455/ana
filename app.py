@@ -2,17 +2,16 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 1. 기본 설정
 st.set_page_config(page_title="생기부 종단 궤적 진단", layout="wide")
 st.title("📈 5개 대학 기준 생기부 성장 궤적 진단")
 
-# 2. 진로/진학 목표 설정 (최상단 고정)
-career_goal = st.text_input("🎯 희망 진로 및 진학 학과", placeholder="예: 역사교육과, 사회학과")
+career_goal = st.text_input(
+    "🎯 희망 진로 및 진학 학과", 
+    placeholder="예: 약학과, 제약공학과",
+    help="AI가 학생의 진로역량(전공 적합성)을 평가하는 기준점이 됩니다. 구체적일수록 좋습니다."
+)
 
-# 3. 학년별 입력부 (모듈형 탭 구조)
 tabs = st.tabs(["1학년", "2학년", "3학년"])
-
-# 데이터 저장을 위한 딕셔너리 구조
 record_data = {}
 
 for i, tab in enumerate(tabs):
@@ -20,81 +19,108 @@ for i, tab in enumerate(tabs):
     with tab:
         st.subheader(f"{grade} 기록 입력")
         
-        col1, col2 = st.columns(2)
+        # 자율, 동아리, 진로를 3단으로 배치
+        col1, col2, col3 = st.columns(3)
         with col1:
-            auto_act = st.text_area(f"{grade} 자율활동", key=f"auto_{i}", height=150, placeholder="자율활동 특기사항을 붙여넣으세요")
+            auto_act = st.text_area(
+                f"{grade} 자율활동", 
+                key=f"auto_{i}", height=150, 
+                placeholder="자율활동 내용 입력",
+                help="학급 특색 활동, 프로젝트, 반장 등의 리더십 경험을 자세히 적어주세요."
+            )
         with col2:
-            career_act = st.text_area(f"{grade} 진로활동", key=f"career_{i}", height=150, placeholder="진로활동 특기사항을 붙여넣으세요")
+            club_act = st.text_area(
+                f"{grade} 동아리활동", 
+                key=f"club_{i}", height=150, 
+                placeholder="동아리활동 내용 입력",
+                help="동아리에서 주도적으로 진행한 탐구, 실험, 혹은 협력 프로젝트를 적어주세요."
+            )
+        with col3:
+            career_act = st.text_area(
+                f"{grade} 진로활동", 
+                key=f"career_{i}", height=150, 
+                placeholder="진로활동 내용 입력",
+                help="진로 탐색 보고서, 진로 캠프 등 전공과 관련된 심화 탐구 내용을 적어주세요."
+            )
             
         st.markdown(f"**{grade} 교과 세특**")
-        st.caption("표의 맨 아랫줄을 클릭하여 과목명과 세특 내용을 붙여넣으세요. 입력 칸은 이수한 만큼 무한정 늘어납니다.")
+        st.caption("💡 표의 맨 아랫줄을 클릭하여 과목명과 세특 내용을 붙여넣으세요.")
         
-        # 동적 행 추가가 가능한 엑셀형 UI
         df_subject = pd.DataFrame([{"과목명": "", "세특 내용": ""}])
         subject_data = st.data_editor(df_subject, num_rows="dynamic", key=f"subject_{i}", use_container_width=True)
         
-        # 입력된 데이터 갈무리
+        # 동아리활동 데이터 저장 추가
         record_data[grade] = {
-            "자율활동": auto_act,
-            "진로활동": career_act,
+            "자율활동": auto_act, 
+            "동아리활동": club_act, 
+            "진로활동": career_act, 
             "교과세특": subject_data
         }
 
-# 4. 분석 버튼 및 결과 출력
 if st.button("AI 사정관 종단 분석 시작", type="primary"):
-    with st.spinner("입력된 학년별 데이터를 바탕으로 우상향 스토리를 진단하고 있습니다..."):
+    with st.spinner("학생의 데이터를 바탕으로 5개 대학 기준 분석을 진행 중입니다..."):
         
-        # TODO: 실제 LLM API 호출로 교체할 부분 (프롬프트에 "입력되지 않은 학년/항목은 무시하고 평가" 지시 포함)
-        # UI 구성을 위한 가상 분석 결과 (Mock Data)
+        # (기존 Mock Data 영역 유지)
         mock_analysis = {
-            "story_trajectory": f"1학년 공통 한국사에서 보인 '사회 변화'에 대한 넓은 관심이, 2학년 사회문화와 진로활동을 거치며 '{career_goal if career_goal else '특정 시대의 노동 인권'}'과 같은 구체적인 주제로 성공적으로 심화되었습니다.",
+            "story_trajectory": f"1학년 진로 캠프에서 체득한 '중심원리(Central Dogma)'에 대한 이해가, 학급 특색 활동과 동아리를 거치며 '{career_goal if career_goal else '제약학'}'과 관련된 공중보건 문제로 훌륭하게 심화되었습니다.",
             "growth_scores": {
-                "1학년": {"학업역량": 65, "진로역량": 50, "공동체역량": 70},
-                "2학년": {"학업역량": 80, "진로역량": 75, "공동체역량": 75},
-                "3학년": {"학업역량": 85, "진로역량": 90, "공동체역량": 80}
+                "1학년": {"학업역량": 65, "진로역량": 70, "공동체역량": 80},
+                "2학년": {"학업역량": 85, "진로역량": 90, "공동체역량": 85},
+                "3학년": {"학업역량": 0, "진로역량": 0, "공동체역량": 0} 
             },
-            "action_plan": "진로역량과 학업역량이 꾸준히 우상향하고 있습니다. 다음 학기에는 이 주제를 바탕으로 타 교과(예: 문학, 윤리 등)와 연계하는 융합적 탐구 기록을 남기면 완벽합니다."
+            "sub_items": [
+                {"역량": "학업역량", "항목": "탐구력", "진단": "🟢 우수", "코멘트": "GLP-1 호르몬 기전을 도식화하고 국정 감사 자료를 근거로 활용한 점이 탁월함."},
+                {"역량": "학업역량", "항목": "학업태도", "진단": "🟢 우수", "코멘트": "질문에 즉답하지 못한 것을 부끄러워하지 않고 재탐구하여 설명하는 태도."},
+                {"역량": "진로역량", "항목": "진로탐색경험", "진단": "🟢 우수", "코멘트": "독성학 등 구체적인 커리큘럼까지 탐색하며 로드맵을 그림."},
+                {"역량": "공동체역량", "항목": "리더십", "진단": "🟡 보통", "코멘트": "소극적인 학생들을 독려한 경험이 있으나, 구체적인 갈등 해결 사례가 보완되면 좋음."}
+            ],
+            "action_plan": "진로에 대한 비전과 생명과학적 탐구력이 매우 우수합니다. 다음 학기에는 '약물의 유통 모니터링 시스템'에 관한 아이디어를 사회(혹은 정보) 교과와 연계하여 정책적, 윤리적 관점에서 다뤄보길 권장합니다."
         }
 
     st.divider()
-    
-    # --- 결과 화면: 세로토닌 스토리텔링 ---
     st.header("📊 입학사정관 종단 궤적 리포트")
     
-    # 관심사의 심화 궤적 시각화 (텍스트 흐름도)
     st.subheader("🎯 관심사 심화 스토리라인")
     st.info(mock_analysis["story_trajectory"])
     
-    # 텍스트 화살표 흐름도 UI (HTML 태그 제거 및 마크다운 적용)
     col_a, col_b, col_c, col_d, col_e = st.columns([2, 1, 2, 1, 2])
-    col_a.success("🌱 1학년\n\n사회 변화 전반에 대한 호기심")
+    col_a.success("🌱 1학년\n\n중심원리(Central Dogma) 등 분자생물학적 기초 확립")
     col_b.markdown("## ➡️")
-    col_c.warning("🌿 2학년\n\n특정 시대의 사회상과 노동 문제로 구체화")
+    col_c.warning("🌿 2학년\n\nGLP-1 작용 기전 탐구 및 공중보건 문제로의 시각 확장")
     col_d.markdown("## ➡️")
-    col_e.error(f"🌳 3학년 (목표)\n\n{career_goal if career_goal else '희망 진로'} 진학을 위한 심층적 비판 역량 증명")
+    col_e.error(f"🌳 3학년 (목표)\n\n{career_goal if career_goal else '약학'} 분야의 다각적 융합 탐구 (정책, 윤리 등)")
     
     st.divider()
 
-    # 역량 성장 꺾은선 그래프
     col1, col2 = st.columns([3, 2])
-    
     with col1:
         st.subheader("📈 3대 역량 학년별 성장 궤적")
-        # Plotly를 활용한 꺾은선 그래프
-        df_growth = pd.DataFrame(mock_analysis["growth_scores"]).T.reset_index()
-        df_growth.rename(columns={"index": "학년"}, inplace=True)
-        
-        # 데이터 구조 변환 (Plotly line chart에 맞게)
+        df_growth = pd.DataFrame(mock_analysis["growth_scores"]).T.reset_index().rename(columns={"index": "학년"})
+        df_growth = df_growth[(df_growth["학업역량"] > 0) | (df_growth["진로역량"] > 0) | (df_growth["공동체역량"] > 0)]
         df_melted = df_growth.melt(id_vars="학년", var_name="역량", value_name="점수")
         
-        fig = px.line(df_melted, x="학년", y="점수", color="역량", markers=True, 
-                      range_y=[0, 100], text="점수",
-                      title="학년 진급에 따른 역량 우상향 추이")
+        fig = px.line(df_melted, x="학년", y="점수", color="역량", markers=True, range_y=[0, 100])
         fig.update_traces(textposition="bottom right", marker=dict(size=10))
         st.plotly_chart(fig, use_container_width=True)
         
     with col2:
-        st.subheader("💡 입학사정관의 Action Plan")
-        st.write(mock_analysis["action_plan"])
-        st.markdown("**🔍 분석 참고 사항**")
-        st.caption("입력되지 않은 공란은 평가에서 제외되었으며, 제공된 텍스트의 맥락(Context)을 중심으로 5개 대학 평가 기준을 적용했습니다.")
+        st.subheader("🚦 5대 대학 세부 항목 진단")
+        df_sub = pd.DataFrame(mock_analysis["sub_items"])
+        st.dataframe(df_sub, hide_index=True, use_container_width=True)
+
+    st.divider()
+    st.subheader("💡 입학사정관의 Action Plan")
+    st.write(mock_analysis["action_plan"])
+    
+    st.divider()
+    col_print1, col_print2 = st.columns([4, 1])
+    with col_print1:
+        st.caption("※ 단축키 `Ctrl + P` (Mac은 `Cmd + P`)를 누르시면 현재 리포트를 PDF로 저장하거나 인쇄할 수 있습니다.")
+    with col_print2:
+        st.components.v1.html(
+            """
+            
+                🖨️ 리포트 인쇄/저장
+            
+            """, height=50
+        )
