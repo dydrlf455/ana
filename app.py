@@ -52,7 +52,7 @@ if st.button("AI 사정관 종단 분석 시작", type="primary"):
             
             # JSON 형태로만 답변하도록 모델 설정
             model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash",
+                model_name="gemini-1.5-flash-latest",
                 generation_config={"response_mime_type": "application/json"}
             )
             
