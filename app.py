@@ -45,14 +45,14 @@ for i, tab in enumerate(tabs):
 
 # 2. 분석 버튼 및 AI API 호출
 if st.button("AI 사정관 종단 분석 시작", type="primary"):
-    with st.spinner("학생의 데이터를 바탕으로 5개 대학 기준 분석을 진행 중입니다... (약 10~20초 소요)"):
+    with st.spinner("학생의 데이터를 바탕으로 5개 대학 기준 분석을 진행 중입니다..."):
         try:
             # API 키 설정 (Streamlit Secrets에서 불러오기)
             genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
             
-            # JSON 형태로만 답변하도록 모델 설정
+            # 최신 모델(3.8 Flash) 적용 및 JSON 형태로만 답변하도록 설정
             model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash",
+                model_name="gemini-3.8-flash",
                 generation_config={"response_mime_type": "application/json"}
             )
             
@@ -101,7 +101,7 @@ if st.button("AI 사정관 종단 분석 시작", type="primary"):
             result = json.loads(response.text)
             
         except Exception as e:
-            st.error("API 호출 중 에러가 발생했습니다. 입력창에 텍스트가 충분한지, 혹은 API 키가 정확히 설정되었는지 확인해주세요.")
+            st.error("API 호출 중 에러가 발생했습니다. 입력창에 텍스트가 충분한지, 혹은 모델 이름이나 API 키가 정확한지 확인해주세요.")
             st.write(f"상세 에러: {e}")
             st.stop()
 
